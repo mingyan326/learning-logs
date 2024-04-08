@@ -1,0 +1,197 @@
+一、创建版本库
+第一步，选择一个合适的地方，创建一个空目录：
+eg:
+$ mkdir learngit
+$ cd learngit
+$ pwd       #显示当前目录
+
+第二步，通过git init命令把这个目录变成Git可以管理的仓库
+
+第三步，把文件添加到版本库
+①用命令git add告诉Git，把文件（readme.txt)添加到仓库
+eg：$ git add readme.txt
+②用命令git commit告诉Git，把文件（readme.txt)提交到仓库
+eg：$ git commit -m "wrote a readme file"
+
+总结：
+①初始化一个Git仓库，使用git init命令。
+②添加文件到Git仓库，分两步：
+使用命令git add <file>，注意，可反复多次使用，添加多个文件；
+使用命令git commit -m <message>，完成。
+
+
+二、时光机穿梭
+（一）版本回退
+①$ git log     
+#查看现在版本库的状态，显示从最近到最远的提交日志
+
+$ git log --pretty=oneline
+#如果嫌输出信息太多，看得眼花缭乱的
+
+②$ git reset --hard HEAD^
+#回退到上一个版本
+#HEAD当前版本，上一个版本HEAD^，上上一个版本HEAD^^，往上100个版本HEAD~100
+
+③$ git reset --hard 'commit id'       
+ #指定回退到未来某个版本，版本号没必要写全，前几位就可以了，Git会自动去找。
+
+④$ cat readme.txt    
+#查看readme.txt的内容
+
+⑤$ git reflog
+#找不到新版本的commit id
+#当你用$ git reset --hard HEAD^回退到add distributed版本时，再想恢复到append GPL，就必须找到append GPL的commit id。Git提供了一个命令git reflog用来记录你的每一次命令
+
+总结：
+①HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+②穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。
+③要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+
+（二）工作区和暂存区
+①工作区（Working Directory）：在电脑里能看到的目录
+eg：learngit文件夹就是一个工作区；
+②版本库（Repository）：工作区有一个隐藏目录.git，这个不算工作区，而是Git的版本库
+Git的版本库里存了很多东西，其中最重要的就是称为stage（或者叫index）的暂存区，还有Git为我们自动创建的第一个分支master，以及指向master的一个指针叫HEAD
+
+③把文件往Git版本库里添加的时候，分两步执行：
+第一步，用git add把文件添加进去，实际上就是把文件修改添加到暂存区；
+第二步，用git commit提交更改，实际上就是把暂存区的所有内容提交到当前分支。
+
+④git add命令实际上就是把要提交的所有修改放到暂存区（Stage），然后，执行git commit就可以一次性把暂存区的所有修改提交到分支（master）。
+
+（三）管理修改
+每次修改，如果不用git add到暂存区，那就不会加入到commit中。
+第一次修改 -> git add -> 第二次修改 -> git add -> git commit
+
+（四）撤销修改
+①当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
+eg:$ git checkout -- readme.txt
+
+②当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD <file>，就回到了场景1，第二步按场景1操作。
+eg:$ git reset HEAD readme.txt
+$ git checkout -- readme.txt
+
+③已经提交了不合适的修改到版本库时，想要撤销本次提交，参考版本回退一节，不过前提是没有推送到远程库。
+eg:$ git reset --hard HEAD^
+
+（五）删除文件
+①直接在文件管理器中把没用的文件删了，或者用rm命令删了
+eg：$ rm test.txt
+
+②现在你有两个选择
+第一，是确实要从版本库中删除该文件，那就用命令git rm删掉，并且git commit
+eg：$ git rm test.txt
+$ git commit -m "remove test.txt"
+
+第二，是删错了，因为版本库里还有呢，所以可以很轻松地把误删的文件恢复到最新版本；
+eg：$ git checkout -- test.txt
+
+
+
+三、远程仓库
+
+四、分支管理
+（一）创建和合并分支
+Git鼓励大量使用分支：
+
+查看分支：git branch
+
+创建分支：git branch <name>
+
+切换分支：git checkout <name>或者git switch <name>
+
+创建+切换分支：git checkout -b <name>或者git switch -c <name>
+
+合并某分支到当前分支：git merge <name>
+
+删除分支：git branch -d <name>
+
+
+
+
+创建并切换到新的dev分支，可以使用：
+
+$ git switch -c dev
+直接切换到已有的master分支，可以使用：
+
+$ git switch master
+使用新的git switch命令，比git checkout要更容易理解。
+
+（二）解决冲突
+当Git无法自动合并分支时，就必须首先解决冲突。解决冲突后，再提交，合并完成。
+
+解决冲突就是把Git合并失败的文件手动编辑为我们希望的内容，再提交。
+
+用git log --graph命令可以看到分支合并图
+
+（三）分支管理策略
+合并分支时，加上--no-ff参数就可以用普通模式合并，合并后的历史有分支，能看出来曾经做过合并，而fast forward合并就看不出来曾经做过合并。
+eg:$ git merge --no-ff -m "merge with no-ff" dev
+
+（四）bug分支
+修复bug时，我们会通过创建新的bug分支进行修复，然后合并，最后删除；
+
+当手头工作没有完成时，先把工作现场git stash一下，然后去修复bug，修复后，再git stash pop，回到工作现场；
+
+在master分支上修复的bug，想要合并到当前dev分支，可以用git cherry-pick <commit>命令，把bug提交的修改“复制”到当前分支，避免重复劳动。
+
+（五）feature分支
+开发一个新feature，最好新建一个分支；
+
+如果要丢弃一个没有被合并过的分支，可以通过git branch -D <name>强行删除。
+
+（六）多人协作
+多人协作的工作模式通常是这样：
+
+首先，可以试图用git push origin <branch-name>推送自己的修改；
+
+如果推送失败，则因为远程分支比你的本地更新，需要先用git pull试图合并；
+
+如果合并有冲突，则解决冲突，并在本地提交；
+
+没有冲突或者解决掉冲突后，再用git push origin <branch-name>推送就能成功！
+
+如果git pull提示no tracking information，则说明本地分支和远程分支的链接关系没有创建，用命令git branch --set-upstream-to <branch-name> origin/<branch-name>。
+
+总结：
+查看远程库信息，使用git remote -v；
+
+本地新建的分支如果不推送到远程，对其他人就是不可见的；
+
+从本地推送分支，使用git push origin branch-name，如果推送失败，先用git pull抓取远程的新提交；
+
+在本地创建和远程分支对应的分支，使用git checkout -b branch-name origin/branch-name，本地和远程分支的名称最好一致；
+
+建立本地分支和远程分支的关联，使用git branch --set-upstream branch-name origin/branch-name；
+
+从远程抓取分支，使用git pull，如果有冲突，要先处理冲突。
+
+
+（七）rebase
+rebase操作可以把本地未push的分叉提交历史整理成直线；
+
+rebase的目的是使得我们在查看历史提交的变化时更容易，因为分叉的提交需要三方对比。
+
+
+五、标签管理
+（一）常见标签
+命令git tag <tagname>用于新建一个标签，默认为HEAD，也可以指定一个commit id；
+
+命令git tag -a <tagname> -m "blablabla..."可以指定标签信息；
+
+命令git tag可以查看所有标签。
+
+ 注意：标签总是和某个commit挂钩。如果这个commit既出现在master分支，又出现在dev分支，那么在这两个分支上都可以看到这个标签。
+
+（二）操作标签
+命令git push origin <tagname>可以推送一个本地标签；
+
+命令git push origin --tags可以推送全部未推送过的本地标签；
+
+命令git tag -d <tagname>可以删除一个本地标签；
+
+命令git push origin :refs/tags/<tagname>可以删除一个远程标签。#先删除本地
+
+
+
+
